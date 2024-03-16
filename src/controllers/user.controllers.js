@@ -224,6 +224,339 @@ const logoutUser = asynchandeler(async (req, res) => {
         .json(new ApiResponce(200, {}, "User logged Out"))
 })
 
+/* hit this end point and refresh the access token and refresh token also
+callled session storage session storage is also similar like refresh token*/
+
+const refreshAccessToken = asynchandeler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET
+        )
+
+        const user = await User.findById(decodedToken?._id)
+
+        if (!user) {
+            throw new ApiError(401, "invalid refresh token")
+        }
+
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "refresh token is expire and not valid")
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponce(200,
+                    {
+                        accessToken,
+                        refreshToken: newRefreshToken,
+                    },
+                    "Access token refreshed Successfully"
+                )
+            )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token")
+    }
+
+
+
+})
+
+const changeCurrentPassword = asynchandeler(async (req, res) => {
+    //1.what data required from user
+    //2.thake user detail by using middleware
+    //3.chake old password is correct or not
+    //4.set new password
+    //5. save password
+
+    //take data from user
+    const { oldPassword, newPassword } = req.body
+    //2.
+    const user = await User.findById(req.user?._id)
+    //3.
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Invalid old password")
+    }
+    //4.
+    user.password = newPassword
+    //5.
+    await user.save({ validateBeforeSave: false })
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, {}, "Password change Successfully"))
+})
+
+const getCurrentUser = asynchandeler(async (req, res) => {
+    //end point already pass through middleware and get all data
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, req.user, "Current user fetched Successfully"))
+
+
+})
+const updateAccountDetails = asynchandeler(async (req, res) => {
+    const { fullName, email } = req.body
+    if (!fullName || !email) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName: fullName,
+                email: email
+            }
+        },
+
+        { new: true }
+
+    ).select("-password")
+
+    return res.status(200)
+        .json(new ApiResponce(200, user, "Account details update Successfully"))
+})
+
+const updateUserAvatar = asynchandeler(async (req, res) => {
+    //req.file method givel multter midleware for one file
+    const avatarLocalPath = req.file?.path
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar fileis missing")
+    }
+    //TODO: old avatar image
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatar.url) {
+        throw new ApiError(400, "Error while uploading on avatar")
+    }
+
+    const user = await User.findByIdAndUpdate(req.user?._id,
+        {
+            $set: {
+                avatar: avatar.url
+            }
+        },
+        { new: true } //only accept new value
+    ).select("-password")
+
+    return res.status(200)
+        .json(
+            ApiResponce(
+                200,
+                user,
+                "Avatar Are Updated Successfully",
+            )
+        )
+
+})
+const updateUserCoverImage = asynchandeler(async (req, res) => {
+    //req.file method givel multter midleware for one file
+    const coverImageLocalPath = req.file?.path
+
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "coverImage fileis missing")
+    }
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+    if (!coverImage.url) {
+        throw new ApiError(400, "Error while uploading on coverImage")
+    }
+
+    const user = await User.findByIdAndUpdate(req.user?._id,
+        {
+            $set: {
+                coverImage: coverImage.url
+            }
+        },
+        { new: true } //only accept new value
+    ).select("-password")
+
+    return res.status(200)
+        .json(
+            ApiResponce(
+                200,
+                user,
+                "CoverImage Are Updated Successfully",
+            )
+        )
+
+})
+
+//agression pipeline
+const getUserChannelProfile = asynchandeler(async (req, res) => {
+    //find username fro url we used req.params
+    const { username } = req.params
+
+    if (!username?.trim()) {
+        throw new ApiError(40, "username is Missing")
+    }
+
+    //Aggregate data directly go to mongodb not pass throw mongosse to mongodb
+    const channel = await User.aggregate([
+        {
+            //match user by username  we write field in aggregate we used $ sing
+            $match: {
+                username: username?.toLowerCase()
+            }
+        }
+        ,
+        {
+            //cheak Suscribers of you channel lookup is used for joint collection 
+            $lookup: {
+                from: "subscriptions", //db name of Subscription ye kis ke sath joint karna hai
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscripers"
+            }
+        },
+        {
+            //cheak how much channel you subscribed to 
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        }
+        ,
+        {
+            //$addFields add new fields in user object database existing fields are already avilable Ex User have username , email etc ... by used $addFields we add new fields like subscriberscount and channelsSubscribedToCount  in User object... this mthod also converd array data into object form
+
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers" //Calculate the size of the arrayField
+                },
+                channelsSubscribedToCount: {
+                    $size: "$subscribedTo"  //Calculate the size of the arrayField
+                },
+
+                //subscriber button press or not 
+
+                isSubscribed: {
+                    $cond: {
+                        if: {
+                            $in: [req.user?._id, "subscribers.subscriber"]
+                            , then: true,
+                            else: false
+                        }
+                    }
+                }
+
+            }
+        },
+        {
+            //We used $project for which data we want to provide to frontand ... ex give below in this example we not pass password , accesstoken , refreshtoken, etc...
+            $project: {
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
+            }
+        }
+    ])
+
+    if (!channel?.length) {
+        throw new ApiError(404, "channel does not exist");
+    }
+
+    //we give in data in form in object
+    return res.
+        ststus(200)
+        .json(
+            new ApiResponce(200, channel[0], "User channel fetched Successfully")
+        )
+
+
+})
+
+
+const getWatchHistory = asynchandeler(async (req, res) => {
+
+    const user = await User.aggregate([
+        {
+            $match: {
+                //this is method to pass id throw aggregation pipeline by using mongoose method (new mongoose.Type.ObjectId(req.user._id))
+
+                _id: new mongoose.Type.ObjectId(req.user._id)
+
+            }
+        },
+
+        {
+            $lookup: {
+                from: "videos",
+                localField: "WatchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                //this pipeline used for nesting or sub pipeline and nesting of videos collection below
+
+
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            //this sub pipline for ownerfield
+                            pipeline: [
+                                {
+                                    $project: {
+                                        fullName: 1,
+                                        avatar: 1,
+                                        username: 1,
+                                    }
+                                }
+                            ]
+                        }
+                    }, {
+                        //we apply this firld to converd array form data into object
+                        $addFields: {
+                            owner: {
+                                $first: "$owner"
+                                // The $first operator is used to select the first element of an array
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res.
+        status(200)
+        .json(
+            new ApiResponce(
+                200,
+                user[0].watchHistory,
+                "Watch history fetch Successfully"
+            )
+        )
+
+})
+
 
 
 export { registerUser, loginUser, logoutUser }
