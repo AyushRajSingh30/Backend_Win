@@ -199,6 +199,31 @@ const loginUser = asynchandeler(async (req, res) => {
 
 })
 
+const logoutUser = asynchandeler(async (req, res) => {
+    //remove cookies and refresh tokens
+    User.findByIdAndUpdate(
+      // req.user.id is quary for find user
+      req.user._id, {
+      $unset: {
+        refreshToken: 1 //this remove the field from documents
+      }
+    },
+      {
+        new: true                                    //all new value only come 
+      }
+    )
+    const options = {
+      httpOnly: true,
+      secure: true
+    }
+  
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponce(200, {}, "User logged Out"))
+  })
 
 
-export { registerUser, loginUser }
+
+export { registerUser, loginUser, logoutUser }
