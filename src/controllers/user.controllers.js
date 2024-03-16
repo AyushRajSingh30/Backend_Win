@@ -559,4 +559,16 @@ const getWatchHistory = asynchandeler(async (req, res) => {
 
 
 
-export { registerUser, loginUser, logoutUser }
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    getCurrentUser,
+    changeCurrentPassword,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory,
+}
