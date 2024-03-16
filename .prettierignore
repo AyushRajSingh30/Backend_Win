@@ -1,0 +1,7 @@
+/.vscode /* vscode setting*/
+/node_modules
+./dist
+
+*.env
+.env
+.env.* /* env sample*/
