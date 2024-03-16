@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.module.js";
 import { uploadOnCloudinary } from "../utils/cloudnary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
-import { Jwt } from "jsonwebtoken";
+import jwt  from "jsonwebtoken";
 import { response } from "express";
 
 const generateAccessAndRefreshTokens = async (userId) => {
