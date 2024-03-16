@@ -23,6 +23,10 @@ app.use(express.static("public"))
 //set cookie at user side this is used for CRUD opreations
 //cookie-parser module extracts cookies from incoming HTTP requests 
 //These cookies are automatically sent by the client's browser along with the request.
+
 app.use(cookieParser())
+
+
+
 
 export {app};
