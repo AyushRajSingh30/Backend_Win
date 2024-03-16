@@ -4,6 +4,42 @@ import { User } from "../models/user.module.js";
 import { uploadOnCloudinary } from "../utils/cloudnary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId);
+        const AccessToken1 = user.generateAccessToken();
+        const RefreshToken1 = user.generateRefreshToken();
+
+        let accessToken;
+        let refreshToken;
+
+        //Accesstoken1 And RefreshToken1 value come in promise we converd value in string by using try catch method...
+        async function getValueFromAccessToken1Promise() {
+            try {
+                accessToken = await AccessToken1;   // resolved value of the promise
+            } catch (error) {
+                throw new ApiError(500, "Somthing Wrong while generated access token")
+            }
+        }
+        getValueFromAccessToken1Promise();
+
+        async function getValueFromRefreshToken1Promise() {
+            try {
+                refreshToken = await RefreshToken1;
+                user.refreshToken = refreshToken;        // Set refreshToken value in the user object
+            } catch (error) {
+                throw new ApiError(500, "Somthing Wrong while generated refresh token")
+            }
+        }
+        getValueFromRefreshToken1Promise()
+        // Save the user object to the database
+        await user.save({ validateBeforeSave: false });
+
+        return { accessToken, refreshToken }
+    } catch (error) {
+        throw new ApiError(500, "Somthing Wrong while generated refress and access token")
+    }
+}
 
 const registerUser = asynchandeler(async (req, res) => {
     /*  // 1. get user detail from frontend
@@ -102,6 +138,67 @@ const registerUser = asynchandeler(async (req, res) => {
 
 })
 
+const loginUser = asynchandeler(async (req, res) => {
+
+    //1. req body -> data
+    //2. username or email
+    //3. find the user
+    //4. password cheak  by bcrypt method
+    //5. access and refresh token and sent to user
+    //6. sent token through cookies
+
+    //1.
+    const { email, username, password } = req.body;
+    console.log(email);
+    //2.
+    if (!username && !email) {
+        throw new ApiError(400, "username or password is required");
+    }
+    //3.
+    //findOne mongosdb method and $or dono me se koi bhi phle mile uski value le lo
+    const user = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if (!user) {
+        throw new ApiError(400, "User does not exixts")
+    }
+    //User is used for apply mongodb method but user is used for you one make method 
+
+    //4.
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid user credentials")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    // cookies
+    // httpOnly and Secure by using this no one modify cookies on frontend cookies only modify  by backend
+    //because by default cookies also modify by frontend
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    //Add cookies and responce
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponce(200,
+                {
+                    user: loggedInUser, accessToken, refreshToken
+                }, "User logged in Successfully")
+        )
+
+})
 
 
-export { registerUser }
+
+export { registerUser, loginUser }
