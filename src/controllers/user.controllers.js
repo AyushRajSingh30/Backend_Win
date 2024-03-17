@@ -110,7 +110,7 @@ const registerUser = asynchandeler(async (req, res) => {
     //     throw new ApiError(400, "400 Avatar file is required")
     // }
 
-    //6. creat user and entry in db
+    //6. creat user and entry in db create make collection in database in mongoose
     const user = await User.create({
         fullName,
         avatar: avatar?.url || "",
