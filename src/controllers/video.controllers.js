@@ -36,7 +36,7 @@ const publishAVideo = asynchandeler(async (req, res) => {
     }
 
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
-
+    
  //we comment if condition because we fase uploding issues on cloudanary
     // if (!thumbnail) {
     //     throw new ApiError(400, "thumbnail is required");
@@ -62,7 +62,16 @@ const publishAVideo = asynchandeler(async (req, res) => {
 
 const getVideoById = asynchandeler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
+    // get video by id
+         const video= await Video.findById(videoId)
+            
+         if(!video){
+            throw new ApiError(400,"Somthing wrong in this url")
+         }
+
+         return res.status(201).json(
+            new ApiResponce(200, video, "Get vedio Successfully")
+        )
 })
 
 const updateVideo = asynchandeler(async (req, res) => {
