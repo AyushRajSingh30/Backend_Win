@@ -4,11 +4,11 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 const videoSchema = new Schema({
     videoFile: {
         type: String, //cloudinary url
-        required: true,
+        // required: true,         //due to uploding problem
     },
     thumbnail: {
         type: String, //cloudinary url
-        required: true,
+        // required: true,              //due to uploding problem
     },
     title: {
         type: String,
@@ -20,7 +20,7 @@ const videoSchema = new Schema({
     },
     duration: {
         type: Number,
-        required: true
+        // required: true
     },
     views: {
         type: Number,
@@ -37,6 +37,6 @@ const videoSchema = new Schema({
 
 }, { timestamps: true })
 
-videoSchema.pluging(mongooseAggregatePaginate)
+// videoSchema.pluging(mongooseAggregatePaginate)
 
 export const Video = mongoose.model("Video", videoSchema)
