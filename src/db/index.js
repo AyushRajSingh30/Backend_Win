@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {DB_NAME} from "../constants.js";
+import { DB_NAME } from "../constants.js";
 
 //async await is used because database avilabel in different continent
 const connectDB = async () => {

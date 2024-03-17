@@ -9,7 +9,7 @@ export const verifyJWT = asynchandeler(async (req, res, next) => {
         //2.verify token is valid or not
         //3.find user by id
         //4.insert user in req.user
-    
+
         //1.
         //req.header is a method to access accessToken like Authorization: Bearer <token>
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
@@ -18,7 +18,7 @@ export const verifyJWT = asynchandeler(async (req, res, next) => {
         if (!token) {
             throw new ApiError(401, "Unauthorized request AccessToken")
         }
-        
+
         //2.
         //provide key(ACCESS_TOKEN_SECRET) to jws for access data of jwt like id, email etc.
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)

@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.module.js";
 import { uploadOnCloudinary } from "../utils/cloudnary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
-import jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { response } from "express";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -441,7 +441,9 @@ const getUserChannelProfile = asynchandeler(async (req, res) => {
         }
         ,
         {
-            //$addFields add new fields in user object database existing fields are already avilable Ex User have username , email etc ... by used $addFields we add new fields like subscriberscount and channelsSubscribedToCount  in User object... this mthod also converd array data into object form
+            /*$addFields add new fields in user object database existing fields are already avilable
+             Ex User have username , email etc ... by used $addFields we add new fields like subscriberscount
+              and channelsSubscribedToCount  in User object... this mthod also converd array data into object form*/
 
             $addFields: {
                 subscribersCount: {
