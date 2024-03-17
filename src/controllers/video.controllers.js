@@ -76,17 +76,43 @@ const getVideoById = asynchandeler(async (req, res) => {
 
 const updateVideo = asynchandeler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+    // update video details like title, description, thumbnail
+    const {title, description}= req.body;
+    if(!title && !description){
+        throw new ApiError(400, "required title and description");
+    }
+
+     const video= await Video.findByIdAndUpdate(videoId,{
+        $set:{
+             title:title,
+             description:description,
+        }
+    },
+    {new: true})
+
+    if(!video){
+        throw new ApiError(500, "Somthing is wrong")
+    }
+
+    return res
+     .status(200)
+     .json(
+        new ApiResponce(200, video, "Video updated successfully")
+    )
+
 
 })
 
 const deleteVideo = asynchandeler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
-})
+    // delete video
+    const video = await Video.findOneAndDelete({ videoId })
 
-const togglePublishStatus = asynchandeler(async (req, res) => {
-    const { videoId } = req.params
+    return res
+        .status(200)
+        .json(
+            new ApiResponce(200, null, "Video deleted successfully")
+        )
 })
 
 export {
@@ -94,5 +120,4 @@ export {
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
 }
