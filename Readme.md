@@ -2,7 +2,4 @@
 
 # Summary of this project
 
-This project is a complex backend project that is built with nodejs, expressjs, mongodb, mongoose, jwt, bcrypt, and many more. This project is a complete backend project that has all the features that a backend project should have.
-We are building a complete video hosting website similar to youtube with all the features like login, signup, upload video and many more.
-
-Project uses all standard practices like JWT, bcrypt, access tokens, refresh Tokens and many more. We have spent a lot of time in building this project and we are sure that you will learn a lot from this project.
+This backend project, built with Node.js, Express.js, MongoDB, and Mongoose, focuses on creating a robust video hosting website akin to YouTube. It encompasses features like user authentication, video uploading, and standard practices such as JWT, bcrypt, access tokens, and refresh tokens. Security measures include input validation, HTTPS encryption, and CORS implementation. Additionally, file uploads are managed securely using libraries like Multer, ensuring efficient handling of multimedia content.
