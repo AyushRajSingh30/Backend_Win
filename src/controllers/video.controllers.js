@@ -36,8 +36,8 @@ const publishAVideo = asynchandeler(async (req, res) => {
     }
 
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
-    
- //we comment if condition because we fase uploding issues on cloudanary
+
+    //we comment if condition because we fase uploding issues on cloudanary
     // if (!thumbnail) {
     //     throw new ApiError(400, "thumbnail is required");
     // }
@@ -63,42 +63,42 @@ const publishAVideo = asynchandeler(async (req, res) => {
 const getVideoById = asynchandeler(async (req, res) => {
     const { videoId } = req.params
     // get video by id
-         const video= await Video.findById(videoId)
-            
-         if (!video) {
-            throw new ApiError(500, "Please provide a valid video id")
-        }
+    const video = await Video.findById(videoId)
 
-         return res.status(201).json(
-            new ApiResponce(200, video, "Get vedio Successfully")
-        )
+    if (!video) {
+        throw new ApiError(500, "Please provide a valid video id")
+    }
+
+    return res.status(201).json(
+        new ApiResponce(200, video, "Get vedio Successfully")
+    )
 })
 
 const updateVideo = asynchandeler(async (req, res) => {
     const { videoId } = req.params
     // update video details like title, description, thumbnail
-    const {title, description}= req.body;
-    if(!title && !description){
+    const { title, description } = req.body;
+    if (!title && !description) {
         throw new ApiError(400, "required title and description");
     }
 
-     const video= await Video.findByIdAndUpdate(videoId,{
-        $set:{
-             title:title,
-             description:description,
+    const video = await Video.findByIdAndUpdate(videoId, {
+        $set: {
+            title: title,
+            description: description,
         }
     },
-    {new: true})
+        { new: true })
 
-    if(!video){
+    if (!video) {
         throw new ApiError(500, "Somthing is wrong")
     }
 
     return res
-     .status(200)
-     .json(
-        new ApiResponce(200, video, "Video updated successfully")
-    )
+        .status(200)
+        .json(
+            new ApiResponce(200, video, "Video updated successfully")
+        )
 
 
 })

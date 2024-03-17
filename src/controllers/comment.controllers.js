@@ -32,46 +32,46 @@ const addComment = asynchandeler(async (req, res) => {
 
 const updateComment = asynchandeler(async (req, res) => {
     // update a comment
-    const {commentId}= req.params
-    const {content} =req.body
-  
-     if(!commentId && !content){
+    const { commentId } = req.params
+    const { content } = req.body
+
+    if (!commentId && !content) {
         throw new ApiError(400, "content is required")
-     }
+    }
 
-     const commentupdate= await Comment.findByIdAndUpdate(commentId,
+    const commentupdate = await Comment.findByIdAndUpdate(commentId,
         {
-        $set: {
-            content:content,
-          },
-     },
-     {new: true,}
-     )
+            $set: {
+                content: content,
+            },
+        },
+        { new: true, }
+    )
 
-     if(!commentupdate){
+    if (!commentupdate) {
         throw new ApiError(500, "Somthing Is Wrong")
-     }
+    }
 
-     return res
-     .status(200)
-     .json( new ApiResponce(200, commentupdate, "Comment Updated Successfully!"))
+    return res
+        .status(200)
+        .json(new ApiResponce(200, commentupdate, "Comment Updated Successfully!"))
 
 })
 
 const deleteComment = asynchandeler(async (req, res) => {
     // delete a comment
-    
+
     const { commentId } = req.params;
 
     const deletedComment = await Comment.findByIdAndDelete(commentId);
 
     if (!deletedComment) {
-      throw new ApiError(500, "Error while deleting comment!");
+        throw new ApiError(500, "Error while deleting comment!");
     }
 
     return res
-      .status(200)
-      .json(new ApiResponce(200, null, "comment deleted successfully!"));
+        .status(200)
+        .json(new ApiResponce(200, null, "comment deleted successfully!"));
 
 })
 
