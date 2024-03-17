@@ -65,9 +65,9 @@ const getVideoById = asynchandeler(async (req, res) => {
     // get video by id
          const video= await Video.findById(videoId)
             
-         if(!video){
-            throw new ApiError(400,"Somthing wrong in this url")
-         }
+         if (!video) {
+            throw new ApiError(500, "Please provide a valid video id")
+        }
 
          return res.status(201).json(
             new ApiResponce(200, video, "Get vedio Successfully")
