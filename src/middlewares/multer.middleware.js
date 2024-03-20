@@ -1,5 +1,6 @@
 import multer from "multer";
 
+//destination file kha uplode karna hai, filename show which file user want to upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./public/temp")
